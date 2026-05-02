@@ -1,25 +1,33 @@
 import streamlit as st
-from transformers import pipeline
-
-st.set_page_config(page_title="T5 Summarizer", layout="centered")
-
-st.title("🌍 Multilingual Abstractive Text Summarization using T5")
-
-st.write("Enter text in any language and get a summarized version.")
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 @st.cache_resource
 def load_model():
-    return pipeline("summarization", model="google/mt5-small")
+    model_name = "google/mt5-small"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    return tokenizer, model
 
-summarizer = load_model()
+tokenizer, model = load_model()
 
-text = st.text_area("Enter your text here:", height=200)
+st.title("🧠 Multilingual Text Summarizer")
+
+text = st.text_area("Enter your text")
 
 if st.button("Summarize"):
     if text.strip() != "":
-        with st.spinner("Generating summary..."):
-            result = summarizer(text, max_length=120, min_length=30, do_sample=False)
-            st.success("Summary:")
-            st.write(result[0]['summary_text'])
-    else:
-        st.warning("Please enter some text!")
+        input_text = "summarize: " + text
+
+        inputs = tokenizer.encode(
+            input_text,
+            return_tensors="pt",
+            max_length=512,
+            truncation=True
+        )
+
+        outputs = model.generate(inputs, max_length=120)
+
+        summary = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        st.subheader("Summary:")
+        st.write(summary)
