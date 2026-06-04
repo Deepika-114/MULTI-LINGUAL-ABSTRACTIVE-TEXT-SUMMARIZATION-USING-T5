@@ -1,5 +1,8 @@
 streamlit
 transformers
 torch
-PyPDF2
 sentencepiece
+pdfplumber
+pdf2image
+pytesseract
+Pillow
